@@ -1,13 +1,22 @@
 //! Experiment with pinning and anchoring self-referential structs.
 #![feature(fundamental, optin_builtin_traits)]
 #![deny(missing_docs)]
+#![cfg_attr(not(feature = "std"), no_std)]
 
-use std::ffi::{CString, OsString};
-use std::marker::PhantomData;
-use std::ops::{Deref, DerefMut};
-use std::path::PathBuf;
-use std::rc::Rc;
-use std::sync::Arc;
+macro_rules! with_std { ($($i:item)*) => ($(#[cfg(feature = "std")]$i)*) }
+
+use core::marker::PhantomData;
+use core::ops::{Deref, DerefMut};
+
+with_std! {
+    extern crate core;
+
+    use std::ffi::{CString, OsString};
+    use std::path::PathBuf;
+    use std::rc::Rc;
+    use std::sync::Arc;
+}
+
 
 /// The `MovePinned` auto trait means that it is safe to move out of a `PinMut`
 /// reference to this type.
@@ -39,17 +48,17 @@ macro_rules! impls {
 
 impls!(&'a T: ?Sized        :       StableDeref);
 impls!(&'a mut T: ?Sized    :       StableDeref,    StableDerefMut);
-impls!(Box<T: ?Sized>       : Own,  StableDeref,    StableDerefMut);
-impls!(Vec<T>               : Own,  StableDeref,    StableDerefMut);
-impls!(String               : Own,  StableDeref);
-impls!(OsString             : Own,  StableDeref);
-impls!(CString              : Own,  StableDeref);
-impls!(PathBuf              : Own,  StableDeref);
-impls!(Rc<T: ?Sized>        :       StableDeref);
-impls!(Arc<T: ?Sized>       :       StableDeref);
 
-/// An Anchored Box type.
-pub type AnchoredBox<T> = Anchor<Box<T>>;
+with_std! {
+    impls!(Box<T: ?Sized>   : Own,  StableDeref,    StableDerefMut);
+    impls!(Vec<T>           : Own,  StableDeref,    StableDerefMut);
+    impls!(String           : Own,  StableDeref);
+    impls!(OsString         : Own,  StableDeref);
+    impls!(CString          : Own,  StableDeref);
+    impls!(PathBuf          : Own,  StableDeref);
+    impls!(Rc<T: ?Sized>    :       StableDeref);
+    impls!(Arc<T: ?Sized>   :       StableDeref);
+}
 
 #[fundamental]
 /// An anchor is a type that wraps a heap-allocated smart pointer. It
@@ -59,10 +68,15 @@ pub struct Anchor<T: Own + StableDeref> {
     ptr: T,
 }
 
-impl<T> Anchor<Box<T>> {
-    /// Construct an AnchoredBox.
-    pub fn boxed(data: T) -> Anchor<Box<T>> {
-        Anchor::new(Box::new(data))
+with_std! {
+    /// An Anchored Box type.
+    pub type AnchoredBox<T> = Anchor<Box<T>>;
+
+    impl<T> Anchor<Box<T>> {
+        /// Construct an AnchoredBox.
+        pub fn boxed(data: T) -> Anchor<Box<T>> {
+            Anchor::new(Box::new(data))
+        }
     }
 }
 
