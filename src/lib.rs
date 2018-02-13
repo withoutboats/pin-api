@@ -46,18 +46,18 @@ macro_rules! impls {
     (&'a mut $p:ident: ?Sized : $($trt:ident),+) => { $( unsafe impl<'a, $p: ?Sized> $trt for &'a mut $p { } )+ };
 }
 
-impls!(&'a T: ?Sized        :       StableDeref);
-impls!(&'a mut T: ?Sized    :       StableDeref,    StableDerefMut);
+impls!(&'a T: ?Sized        :       StableDeref,                    MovePinned);
+impls!(&'a mut T: ?Sized    :       StableDeref,    StableDerefMut, MovePinned);
 
 with_std! {
-    impls!(Box<T: ?Sized>   : Own,  StableDeref,    StableDerefMut);
-    impls!(Vec<T>           : Own,  StableDeref,    StableDerefMut);
+    impls!(Box<T: ?Sized>   : Own,  StableDeref,    StableDerefMut, MovePinned);
+    impls!(Vec<T>           : Own,  StableDeref,    StableDerefMut, MovePinned);
     impls!(String           : Own,  StableDeref);
     impls!(OsString         : Own,  StableDeref);
     impls!(CString          : Own,  StableDeref);
     impls!(PathBuf          : Own,  StableDeref);
-    impls!(Rc<T: ?Sized>    :       StableDeref);
-    impls!(Arc<T: ?Sized>   :       StableDeref);
+    impls!(Rc<T: ?Sized>    :       StableDeref,                    MovePinned);
+    impls!(Arc<T: ?Sized>   :       StableDeref,                    MovePinned);
 }
 
 #[fundamental]
@@ -113,6 +113,10 @@ impl<T: Own + StableDerefMut> DerefMut for Anchor<T>
         &mut *self.ptr
     }
 }
+
+unsafe impl<T> MovePinned for Anchor<T> where
+    T: StableDeref + Own + MovePinned
+{ }
 
 #[fundamental]
 /// A pinned reference.
