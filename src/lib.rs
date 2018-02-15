@@ -157,6 +157,11 @@ impl<'a, T: ?Sized> Pin<'a, T> {
     pub unsafe fn pinned_unchecked(ptr: &'a T) -> Pin<'a, T> {
         Pin { inner: ptr }
     }
+
+    /// Get a Pin with a shorter lifetime
+    pub fn as_ref<'b>(&'b mut self) -> Pin<'b, T> {
+        Pin { inner: self.inner }
+    }
 }
 
 impl<'a, T> Deref for Pin<'a, T> {
@@ -221,6 +226,16 @@ impl<'a, T: ?Sized> PinMut<'a, T> {
     /// moved out of the mutable reference you receive.
     pub unsafe fn get_mut<'b>(pin: &'b mut PinMut<'a, T>) -> &'b mut T {
         pin.inner
+    }
+
+    /// Get a Pin with a shorter lifetime
+    pub fn as_ref<'b>(&'b mut self) -> Pin<'b, T> {
+        Pin { inner: self.inner }
+    }
+
+    /// Get a PinMut with a shorter lifetime
+    pub fn as_mut<'b>(&'b mut self) -> PinMut<'b, T> {
+        PinMut { inner: self.inner }
     }
 }
 
