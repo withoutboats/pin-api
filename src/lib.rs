@@ -90,6 +90,11 @@ impl<T: Own + StableDeref> Anchor<T> {
     pub fn as_pin<'a>(&'a self) -> Pin<'a, T::Target> {
         Pin::anchored(self)
     }
+
+    /// Move the inner type out of the anchor.
+    pub unsafe fn into_inner(self) -> T {
+        self.ptr
+    }
 }
 
 impl<T: Own + StableDerefMut> Anchor<T> {
