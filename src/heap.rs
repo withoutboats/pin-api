@@ -1,4 +1,5 @@
-use core::ops::{Deref, DerefMut};
+use core::ops::{CoerceUnsized, Deref, DerefMut};
+use core::marker::Unsize;
 
 use MovePinned;
 use Pin;
@@ -69,4 +70,9 @@ impl<T: MovePinned + ?Sized> DerefMut for PinBox<T> {
     }
 }
 
-unsafe impl<T> MovePinned for PinBox<T> where { }
+unsafe impl<T: ?Sized> MovePinned for PinBox<T> { }
+
+impl<T, U> CoerceUnsized<PinBox<U>> for PinBox<T> where
+    T: Unsize<U> + ?Sized,
+    U: ?Sized,
+{ }

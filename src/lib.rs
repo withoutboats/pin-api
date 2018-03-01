@@ -1,5 +1,5 @@
 //! Experiment with pinning self-referential structs.
-#![feature(fundamental, optin_builtin_traits)]
+#![feature(fundamental, optin_builtin_traits, coerce_unsized, unsize)]
 #![deny(missing_docs)]
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -10,7 +10,8 @@ mod stack;
 #[cfg(feature = "std")]
 mod heap;
 
-use core::ops::{Deref, DerefMut};
+use core::ops::{CoerceUnsized, Deref, DerefMut};
+use core::marker::Unsize;
 
 pub use stack::{pinned, StackPinned};
 #[cfg(feature = "std")]
@@ -80,3 +81,8 @@ impl<'a, T: MovePinned + ?Sized> DerefMut for Pin<'a, T> {
         self.inner
     }
 }
+
+impl<'a, T, U> CoerceUnsized<Pin<'a, U>> for Pin<'a, T> where
+    T: Unsize<U> + ?Sized,
+    U: ?Sized,
+{ }
