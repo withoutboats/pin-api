@@ -4,7 +4,7 @@ use core::marker::Unsize;
 use Unpin;
 
 #[fundamental]
-/// A pinned reference.
+/// A pinned mutable reference.
 ///
 /// The value referenced by this is guaranteed never to move again, unless it
 /// implements `Unpin`.

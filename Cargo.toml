@@ -1,5 +1,5 @@
 [package]
-name = "anchor-experiment"
+name = "pin-api"
 description = "Experiment with Anchor API."
 license = "MIT OR Apache-2.0"
 version = "0.1.0"
