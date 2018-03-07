@@ -49,7 +49,7 @@ impl<'a, T: ?Sized> Pin<'a, T> {
     }
 }
 
-impl<'a, T: Unpin + ?Sized> Deref for Pin<'a, T> {
+impl<'a, T: ?Sized> Deref for Pin<'a, T> {
     type Target = T;
     fn deref(&self) -> &T {
         self.inner
