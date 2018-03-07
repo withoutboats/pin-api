@@ -2,11 +2,11 @@
 name = "pin-api"
 description = "Experiment with Anchor API."
 license = "MIT OR Apache-2.0"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["boats <boats@mozilla.com>"]
 
 [dependencies]
 
 [features]
-default-features = ["std"]
+default = ["std"]
 std = []
