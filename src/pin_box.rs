@@ -1,13 +1,14 @@
 use core::ops::{CoerceUnsized, Deref, DerefMut};
 use core::marker::Unsize;
 
-use MovePinned;
+use Unpin;
 use Pin;
+use PinMut;
 
 #[fundamental]
 /// A PinBox is a box that pins the data inside it. It guarantees that that
 /// data will not be moved out of it unless that data implements the
-/// `MovePinned` trait.
+/// `Unpin` trait.
 pub struct PinBox<T: ?Sized> {
     inner: Box<T>
 }
@@ -27,11 +28,15 @@ impl<T> PinBox<T> {
     }
 }
 
-
 impl<T: ?Sized> PinBox<T> {
-    /// Get a pinned reference to the data in this PinBox.
-    pub fn as_pin<'a>(&'a mut self) -> Pin<'a, T> {
-        Pin { inner: &mut *self.inner }
+    /// Get a mutable pinned reference to the data in this PinBox.
+    pub fn as_pin<'a>(&'a self) -> Pin<'a, T> {
+        unsafe { Pin::new_unchecked(&*self.inner) }
+    }
+
+    /// Get a mutable pinned reference to the data in this PinBox.
+    pub fn as_pin_mut<'a>(&'a mut self) -> PinMut<'a, T> {
+        unsafe { PinMut::new_unchecked(&mut*self.inner) }
     }
 
     /// Move the inner box out of this PinBox.
@@ -43,34 +48,40 @@ impl<T: ?Sized> PinBox<T> {
     }
 }
 
-impl<T: MovePinned> PinBox<T> {
+impl<T: Unpin> PinBox<T> {
     /// Move the data from this PinBox onto the stack.
     pub fn into_inner(self) -> T {
         *self.inner
     }
 }
 
-impl<T: MovePinned + ?Sized> PinBox<T> {
+impl<T: Unpin + ?Sized> PinBox<T> {
     /// Consume this PinBox and get the internal Box out of it.
     pub fn into_box(self) -> Box<T> {
         self.inner
     }
 }
 
-impl<T: ?Sized> Deref for PinBox<T> {
+impl<T: Unpin + ?Sized> Deref for PinBox<T> {
     type Target = T;
     fn deref(&self) -> &T {
         &*self.inner
     }
 }
 
-impl<T: MovePinned + ?Sized> DerefMut for PinBox<T> {
+impl<T: Unpin + ?Sized> DerefMut for PinBox<T> {
     fn deref_mut(&mut self) -> &mut T {
         &mut *self.inner
     }
 }
 
-unsafe impl<T: ?Sized> MovePinned for PinBox<T> { }
+impl<T: ?Sized> From<Box<T>> for PinBox<T> {
+    fn from(boxed: Box<T>) -> PinBox<T> {
+        PinBox { inner: boxed }
+    }
+}
+
+unsafe impl<T: ?Sized> Unpin for PinBox<T> { }
 
 impl<T, U> CoerceUnsized<PinBox<U>> for PinBox<T> where
     T: Unsize<U> + ?Sized,

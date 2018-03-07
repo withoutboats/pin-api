@@ -1,6 +1,7 @@
 use core::marker::PhantomData;
 
 use Pin;
+use PinMut;
 
 /// This struct is used for pinning data to the stack.
 ///
@@ -15,8 +16,13 @@ pub struct StackPinned<'a, T: ?Sized + 'a> {
 
 impl<'a, T: ?Sized + 'a> StackPinned<'a, T> {
     /// Convert this type to a Pin.
-    pub fn as_pin(&'a mut self) -> Pin<'a, T> {
-        Pin { inner: &mut self.data }
+    pub fn as_pin(&'a self) -> Pin<'a, T> {
+        unsafe { Pin::new_unchecked(&self.data) }
+    }
+
+    /// Convert this type to a PinMut.
+    pub fn as_pin_mut(&'a mut self) -> PinMut<'a, T> {
+        unsafe { PinMut::new_unchecked(&mut self.data) }
     }
 }
 
