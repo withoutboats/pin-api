@@ -1,25 +1,29 @@
 //! Experiment with pinning self-referential structs.
-#![feature(fundamental, optin_builtin_traits, coerce_unsized, unsize)]
+#![cfg_attr(feature = "nightly", feature(fundamental, optin_builtin_traits, coerce_unsized, unsize))]
 #![deny(missing_docs)]
 #![cfg_attr(not(feature = "std"), no_std)]
 
-#[cfg(feature = "std")]
-extern crate core;
+macro_rules! nightly { ($($i:item)*) => { $(#[cfg(feature = "nightly")]$i)* } }
 
-mod stack;
-mod pin;
-mod pin_mut;
-#[cfg(feature = "std")]
-mod pin_box;
+nightly! {
+    #[cfg(feature = "std")]
+    extern crate core;
 
-pub use stack::{pinned, StackPinned};
-pub use pin::Pin;
-pub use pin_mut::PinMut;
-#[cfg(feature = "std")]
-pub use pin_box::PinBox;
+    mod stack;
+    mod pin;
+    mod pin_mut;
+    #[cfg(feature = "std")]
+    mod pin_box;
 
-/// The `Unpin` auto trait means that it is safe to move out of a `Pin`
-/// reference to this type.
-///
-/// It is not implemented by self-referential types.
-pub unsafe auto trait Unpin { }
+    pub use stack::{pinned, StackPinned};
+    pub use pin::Pin;
+    pub use pin_mut::PinMut;
+    #[cfg(feature = "std")]
+    pub use pin_box::PinBox;
+
+    /// The `Unpin` auto trait means that it is safe to move out of a `Pin`
+    /// reference to this type.
+    ///
+    /// It is not implemented by self-referential types.
+    pub unsafe auto trait Unpin { }
+}
