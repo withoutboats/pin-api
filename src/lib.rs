@@ -5,6 +5,9 @@
 
 macro_rules! nightly { ($($i:item)*) => { $(#[cfg(feature = "nightly")]$i)* } }
 
+#[cfg(feature = "nightly")]
+mod unpin;
+
 nightly! {
     #[cfg(feature = "std")]
     extern crate core;
@@ -20,10 +23,5 @@ nightly! {
     pub use pin_mut::PinMut;
     #[cfg(feature = "std")]
     pub use pin_box::PinBox;
-
-    /// The `Unpin` auto trait means that it is safe to move out of a `Pin`
-    /// reference to this type.
-    ///
-    /// It is not implemented by self-referential types.
-    pub unsafe auto trait Unpin { }
+    pub use unpin::Unpin;
 }
