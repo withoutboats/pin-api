@@ -5,6 +5,7 @@ use core::ops::{CoerceUnsized, Deref, DerefMut};
 use marker::Unpin;
 use mem::Pin;
 
+#[fundamental]
 pub struct PinBox<T: ?Sized> {
     inner: Box<T>,
 }

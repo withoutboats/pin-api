@@ -4,6 +4,7 @@ use core::ops::{CoerceUnsized, Deref, DerefMut};
 
 use marker::Unpin;
 
+#[fundamental]
 pub struct Pin<'a, T: ?Sized + 'a> {
     inner: &'a mut T,
 }
